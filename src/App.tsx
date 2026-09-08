@@ -150,7 +150,7 @@ export const App = () => {
             </p>
             <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
               <input
-                placeholder="Ask about LRS Fee Calculator, HMDA Plot Maps, HYDRAA Check, or title audits..."
+                placeholder="Ask about EMI Calculator, HMDA Plot Maps, HYDRAA Check, or title audits..."
                 type="text"
                 value={aiQuery}
                 onChange={(e) => setAiQuery(e.target.value)}
