@@ -695,14 +695,29 @@ export const App = () => {
               <h3 style={{ fontSize: '16px', fontWeight: '800', color: '#0f172a', marginBottom: '4px' }}>📈 Micro-Market Volume Trend Analyzer</h3>
               <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '16px' }}>Calculate volume trend velocity and direction (NEW, RISING, STABLE, DECLINING) for any topic.</p>
 
-              <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
-                <input
-                  type="text"
-                  placeholder="Enter topic e.g. Mokila, Kokapet, LRS Rebate, HYDRAA..."
+              <div style={{ display: 'flex', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
+                <select
                   value={trendSearchTopic}
-                  onChange={(e) => setTrendSearchTopic(e.target.value)}
-                  style={{ flex: '1', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: '600' }}
-                />
+                  onChange={(e) => {
+                    const selected = e.target.value;
+                    setTrendSearchTopic(selected);
+                    handleFetchTrend(selected);
+                  }}
+                  style={{ flex: '1', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: '700', backgroundColor: '#ffffff', color: '#0f172a', cursor: 'pointer' }}
+                >
+                  <option value="Mokila Plot Auction">🎯 Mokila Plot Auction (HMDA E-Auction Hotspot)</option>
+                  <option value="Kokapet High Rise">🏢 Kokapet High Rise (Western Corridor Investment)</option>
+                  <option value="Tellapur Plot vs Flat">🏡 Tellapur Plot vs Flat (Gated Community Demand)</option>
+                  <option value="Telangana LRS 25% Rebate">📜 Telangana LRS 25% Rebate (Regulatory Guideline)</option>
+                  <option value="HYDRAA FTL Demolitions">🌊 HYDRAA FTL Demolitions (Buffer Zone Anxiety)</option>
+                  <option value="Osman Nagar Land Bids">💎 Osman Nagar Land Bids (Record ₹51 Cr/Acre Bids)</option>
+                  <option value="Badangpet LRS Extension">📌 Badangpet LRS Extension (Regularization Request)</option>
+                  <option value="Narsingi Apartment Price">📈 Narsingi Apartment Price (Sqft Rate Benchmark)</option>
+                  <option value="Kollur Gated Community">🏰 Kollur Gated Community (Outer Ring Road Growth)</option>
+                  <option value="Gachibowli Rental Yield">💼 Gachibowli Rental Yield (IT Professional Demand)</option>
+                  <option value="HMDA Layout Approval">✅ HMDA Layout Approval (Legal Safety Verification)</option>
+                  <option value="Telangana Dharani Registration">🏛️ Telangana Dharani Registration (Land Title & Taxes)</option>
+                </select>
                 <button
                   onClick={() => handleFetchTrend(trendSearchTopic)}
                   style={{ backgroundColor: '#2563eb', color: '#ffffff', padding: '10px 20px', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer' }}
