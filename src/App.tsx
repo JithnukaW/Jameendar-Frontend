@@ -385,17 +385,17 @@ export const App = () => {
                         <span>Affects: {item.who_it_affects}</span>
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                           {item.source_document_link && (
-                            <a 
-                              href={item.source_document_link} 
-                              target="_blank" 
-                              rel="noreferrer" 
-                              style={{ 
-                                backgroundColor: item.is_cdn_hosted ? '#10b981' : '#2563eb', 
-                                color: '#ffffff', 
-                                padding: '4px 10px', 
-                                borderRadius: '6px', 
-                                fontWeight: '600', 
-                                textDecoration: 'none', 
+                            <a
+                              href={item.source_document_link}
+                              target="_blank"
+                              rel="noreferrer"
+                              style={{
+                                backgroundColor: item.is_cdn_hosted ? '#10b981' : '#2563eb',
+                                color: '#ffffff',
+                                padding: '4px 10px',
+                                borderRadius: '6px',
+                                fontWeight: '600',
+                                textDecoration: 'none',
                                 fontSize: '11px',
                                 display: 'inline-flex',
                                 alignItems: 'center',
@@ -406,10 +406,10 @@ export const App = () => {
                             </a>
                           )}
                           {item.fallback_portal_url && item.is_cdn_hosted && (
-                            <a 
-                              href={item.fallback_portal_url} 
-                              target="_blank" 
-                              rel="noreferrer" 
+                            <a
+                              href={item.fallback_portal_url}
+                              target="_blank"
+                              rel="noreferrer"
                               style={{ color: '#64748b', fontWeight: '500', textDecoration: 'none', fontSize: '11px' }}
                             >
                               🏛️ Authority Portal ↗
@@ -493,7 +493,7 @@ export const App = () => {
                     }).finally(() => setLoadingListening(false));
                   }}
                   disabled={loadingListening}
-                  style={{ backgroundColor: '#0f172a', color: '#ffffff', padding: '8px 16px', borderRadius: '8px', border: 'none', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }}
+                  style={{ backgroundColor: '#e7e9edff', color: '#0b0b0bff', padding: '8px 16px', borderRadius: '8px', border: 'none', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }}
                 >
                   {loadingListening ? 'Refreshing Signals...' : '🔄 Refresh Live Data'}
                 </button>
@@ -573,8 +573,8 @@ export const App = () => {
                   .slice(0, 18)
                   .map((kw: any, idx: number) => {
                     const catColor = kw.category === 'LOCALITY' ? '#2563eb' :
-                                    kw.category === 'REGULATORY' ? '#dc2626' :
-                                    kw.category === 'PROPERTY_TYPE' ? '#059669' : '#7c3aed';
+                      kw.category === 'REGULATORY' ? '#dc2626' :
+                        kw.category === 'PROPERTY_TYPE' ? '#059669' : '#7c3aed';
                     return (
                       <div key={idx} style={{ backgroundColor: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                         <div>
