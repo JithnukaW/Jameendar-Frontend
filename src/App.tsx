@@ -290,8 +290,34 @@ export const App = () => {
                         <span>Affects: {item.who_it_affects}</span>
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                           {item.source_document_link && (
-                            <a href={item.source_document_link} target="_blank" rel="noreferrer" style={{ color: '#2563eb', fontWeight: '600', textDecoration: 'none' }}>
-                              Official Portal ↗
+                            <a 
+                              href={item.source_document_link} 
+                              target="_blank" 
+                              rel="noreferrer" 
+                              style={{ 
+                                backgroundColor: item.is_cdn_hosted ? '#10b981' : '#2563eb', 
+                                color: '#ffffff', 
+                                padding: '4px 10px', 
+                                borderRadius: '6px', 
+                                fontWeight: '600', 
+                                textDecoration: 'none', 
+                                fontSize: '11px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                              }}
+                            >
+                              {item.is_cdn_hosted ? '📄 Verified PDF Guide ↗' : '🏛️ Official Source ↗'}
+                            </a>
+                          )}
+                          {item.fallback_portal_url && item.is_cdn_hosted && (
+                            <a 
+                              href={item.fallback_portal_url} 
+                              target="_blank" 
+                              rel="noreferrer" 
+                              style={{ color: '#64748b', fontWeight: '500', textDecoration: 'none', fontSize: '11px' }}
+                            >
+                              🏛️ Authority Portal ↗
                             </a>
                           )}
                           {item.attached_documents && (() => {
