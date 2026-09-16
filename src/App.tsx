@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { apiClient } from './apiClient';
 
 export const App = () => {
-  const [activeTab, setActiveTab] = useState<'bhoomi' | 'regulatory' | 'listening' | 'admin' | 'analytics' | 'reports'>('bhoomi');
+  const [activeTab, setActiveTab] = useState<'verification' | 'bhoomi' | 'regulatory' | 'listening' | 'admin' | 'analytics' | 'reports'>('verification');
 
   // Bhoomi AI State
   const [aiQuery, setAiQuery] = useState('');
@@ -45,6 +45,48 @@ export const App = () => {
   const [locB, setLocB] = useState<string>('Tellapur');
   const [compareData, setCompareData] = useState<any>(null);
 
+  // Property Verification State (Parameters 3, 4, 5)
+  const [verifSubTab, setVerifSubTab] = useState<'all' | 'p3' | 'p4' | 'p5'>('all');
+  const [surveyNo, setSurveyNo] = useState('254');
+  const [district, setDistrict] = useState('Rangareddy');
+  const [mandal, setMandal] = useState('Gandipet');
+  const [village, setVillage] = useState('Kokapet');
+  const [khataNo, setKhataNo] = useState('1042');
+  const [documentNo, setDocumentNo] = useState('4512/2021');
+  const [sroOffice, setSroOffice] = useState('Gandipet');
+  const [verifLoading, setVerifLoading] = useState(false);
+  const [verifReport, setVerifReport] = useState<any>(null);
+  const [p3Result, setP3Result] = useState<any>(null);
+  const [p4Result, setP4Result] = useState<any>(null);
+  const [p5Result, setP5Result] = useState<any>(null);
+  const [verifSources, setVerifSources] = useState<any[]>([]);
+
+  // RERA Documents State & Handler
+  const [reraNumber, setReraNumber] = useState('P01100003145');
+  const [reraDocs, setReraDocs] = useState<any>(null);
+  const [reraLoading, setReraLoading] = useState(false);
+  const [reraError, setReraError] = useState('');
+
+  const handleFetchReraDocs = (targetRera?: string) => {
+    const numToFetch = targetRera || reraNumber;
+    if (!numToFetch || !numToFetch.trim()) return;
+    setReraLoading(true);
+    setReraError('');
+    setReraDocs(null);
+
+    apiClient.get(`/rera-documents/${encodeURIComponent(numToFetch.trim())}`)
+      .then((res: any) => {
+        setReraDocs(res);
+      })
+      .catch((err: any) => {
+        console.error(err);
+        setReraError(err?.detail || 'Failed to fetch RERA project documents.');
+      })
+      .finally(() => {
+        setReraLoading(false);
+      });
+  };
+
   // Weekly Report State
   const [report, setReport] = useState<any>(null);
 
@@ -54,7 +96,7 @@ export const App = () => {
     if (activeTab === 'regulatory') {
       if (updates.length === 0) {
         setLoadingUpdates(true);
-        apiClient.get('/regulatory/updates?limit=500')
+        apiClient.get('/regulatory/updates?limit=100000')
           .then((res: any) => setUpdates(res))
           .catch((err) => console.error(err))
           .finally(() => setLoadingUpdates(false));
@@ -63,7 +105,7 @@ export const App = () => {
       if (trendingQuestions.length === 0 || topKeywords.length === 0) {
         setLoadingListening(true);
         const p1 = apiClient.get('/listening/health').catch(() => ({ status: 'HEALTHY' }));
-        const p2 = apiClient.get('/listening/trending_questions?limit=50').catch(() => [
+        const p2 = apiClient.get('/listening/trending_questions?limit=100000').catch(() => [
           {
             id: 1,
             source: "search",
@@ -115,7 +157,7 @@ export const App = () => {
             url: "https://news.google.com/rss/articles/CBMi..."
           }
         ]);
-        const p3 = apiClient.get('/listening/top_keywords?limit=50').catch(() => [
+        const p3 = apiClient.get('/listening/top_keywords?limit=100000').catch(() => [
           { keyword: "HYDRAA", category: "REGULATORY", frequency: 33, score: 185, search_volume: 8750 },
           { keyword: "HMDA", category: "REGULATORY", frequency: 16, score: 100, search_volume: 4500 },
           { keyword: "Layout", category: "PROPERTY_TYPE", frequency: 14, score: 80, search_volume: 4000 },
@@ -160,8 +202,47 @@ export const App = () => {
       if (!report) {
         apiClient.get('/reports/weekly/latest').then((res: any) => setReport(res)).catch(err => console.error(err));
       }
+    } else if (activeTab === 'verification') {
+      if (verifSources.length === 0) {
+        apiClient.get('/verification/sources')
+          .then((res: any) => setVerifSources(Array.isArray(res) ? res : []))
+          .catch((err) => console.error(err));
+      }
     }
   }, [activeTab]);
+
+  const handleRunVerification = async (paramType: 'all' | 'p3' | 'p4' | 'p5') => {
+    setVerifLoading(true);
+    const payload = {
+      survey_number: surveyNo,
+      district: district,
+      mandal: mandal,
+      village: village,
+      khata_number: khataNo || undefined,
+      document_number: documentNo || undefined,
+      sro_office: sroOffice || undefined,
+    };
+
+    try {
+      if (paramType === 'all') {
+        const res = await apiClient.post('/verification/run', payload);
+        setVerifReport(res);
+      } else if (paramType === 'p3') {
+        const res = await apiClient.post('/verification/prohibited-land', payload);
+        setP3Result(res);
+      } else if (paramType === 'p4') {
+        const res = await apiClient.post('/verification/waterbody', payload);
+        setP4Result(res);
+      } else if (paramType === 'p5') {
+        const res = await apiClient.post('/verification/encumbrance', payload);
+        setP5Result(res);
+      }
+    } catch (err) {
+      console.error('Verification error:', err);
+    } finally {
+      setVerifLoading(false);
+    }
+  };
 
   // Fetch head-to-head comparison whenever locA or locB changes
   useEffect(() => {
@@ -249,12 +330,13 @@ export const App = () => {
       {/* Navigation Bar */}
       <nav style={{ backgroundColor: '#ffffff', borderBottom: '1px solid #e2e8f0', padding: '0 24px', display: 'flex', gap: '16px' }}>
         {[
-          { id: 'bhoomi', label: '🤖 Bhoomi AI Assistant (Component A)' },
+          { id: 'verification', label: '🛡️ Property Verify Engine' },
+          { id: 'bhoomi', label: '🤖 Bhoomi AI Assistant' },
           { id: 'regulatory', label: '📜 Regulatory Feed' },
           { id: 'listening', label: '🎧 Market Listening & Keywords' },
           { id: 'admin', label: '🛡️ Human Approval Queue' },
-          { id: 'analytics', label: '📈 Analytics & Price Comparison' },
-          { id: 'reports', label: '🧠 Executive Report (Component B)' },
+          { id: 'analytics', label: '📈 Analytics & Prices' },
+          { id: 'reports', label: '🧠 Executive Briefing' },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -278,6 +360,395 @@ export const App = () => {
 
       {/* Main Content Area */}
       <main style={{ maxWidth: '1200px', margin: '24px auto', padding: '0 24px' }}>
+
+        {/* Tab 0: Property Verification Engine (Parameters 3, 4, 5) */}
+        {activeTab === 'verification' && (
+          <div style={{ display: 'grid', gap: '20px' }}>
+            {/* Header & Description Card */}
+            <div style={{ backgroundColor: '#ffffff', padding: '24px', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <div>
+                  <h2 style={{ fontSize: '20px', fontWeight: '800', color: '#0f172a' }}>🛡️ Telangana Property Verification Engine</h2>
+                  <p style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>
+                    Production validation for <strong>Parameter 3 (Prohibited Land)</strong>, <strong>Parameter 4 (HMDA Lakes & Waterbodies)</strong>, and <strong>Parameter 5 (Encumbrance Certificates & Registration Deeds)</strong>.
+                  </p>
+                </div>
+                <span style={{ backgroundColor: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0', fontSize: '12px', fontWeight: '700', padding: '6px 12px', borderRadius: '20px' }}>
+                  Active
+                </span>
+              </div>
+
+              {/* Input Form Grid (Balanced 3-Column Grid) */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', backgroundColor: '#f8fafc', padding: '20px', borderRadius: '10px', border: '1px solid #cbd5e1', marginBottom: '20px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: '700', color: '#475569', marginBottom: '6px' }}>SURVEY / SY NO *</label>
+                  <input
+                    type="text"
+                    value={surveyNo}
+                    onChange={(e) => setSurveyNo(e.target.value)}
+                    style={{ width: '100%', boxSizing: 'border-box', height: '38px', padding: '0 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: '600', backgroundColor: '#ffffff', color: '#0f172a' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: '700', color: '#475569', marginBottom: '6px' }}>DISTRICT *</label>
+                  <select
+                    value={district}
+                    onChange={(e) => setDistrict(e.target.value)}
+                    style={{ width: '100%', boxSizing: 'border-box', height: '38px', padding: '0 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: '600', backgroundColor: '#ffffff', color: '#0f172a' }}
+                  >
+                    {[
+                      "Rangareddy", "Medchal-Malkajgiri", "Hyderabad", "Sangareddy", "Siddipet",
+                      "Yadadri Bhuvanagiri", "Bhadradri Kothagudem", "Adilabad", "Hanamkonda", "Warangal",
+                      "Khammam", "Karimnagar", "Nalgonda", "Nizamabad", "Mahabubnagar",
+                      "Jagtial", "Jangaon", "Jayashankar Bhupalpally", "Jogulamba Gadwal", "Kamareddy",
+                      "Komaram Bheem Asifabad", "Mahabubabad", "Mancherial", "Medak", "Mulugu",
+                      "Nagarkurnool", "Narayanpet", "Nirmal", "Peddapalli", "Rajanna Sircilla",
+                      "Suryapet", "Vikarabad", "Wanaparthy"
+                    ].map((d) => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: '700', color: '#475569', marginBottom: '6px' }}>MANDAL *</label>
+                  <input
+                    type="text"
+                    value={mandal}
+                    onChange={(e) => setMandal(e.target.value)}
+                    style={{ width: '100%', boxSizing: 'border-box', height: '38px', padding: '0 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: '600', backgroundColor: '#ffffff', color: '#0f172a' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: '700', color: '#475569', marginBottom: '6px' }}>VILLAGE *</label>
+                  <input
+                    type="text"
+                    value={village}
+                    onChange={(e) => setVillage(e.target.value)}
+                    style={{ width: '100%', boxSizing: 'border-box', height: '38px', padding: '0 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: '600', backgroundColor: '#ffffff', color: '#0f172a' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: '700', color: '#475569', marginBottom: '6px' }}>KHATA NO</label>
+                  <input
+                    type="text"
+                    value={khataNo}
+                    onChange={(e) => setKhataNo(e.target.value)}
+                    style={{ width: '100%', boxSizing: 'border-box', height: '38px', padding: '0 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', backgroundColor: '#ffffff', color: '#0f172a' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: '700', color: '#475569', marginBottom: '6px' }}>DOCUMENT NO (EC)</label>
+                  <input
+                    type="text"
+                    value={documentNo}
+                    onChange={(e) => setDocumentNo(e.target.value)}
+                    style={{ width: '100%', boxSizing: 'border-box', height: '38px', padding: '0 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', backgroundColor: '#ffffff', color: '#0f172a' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: '700', color: '#475569', marginBottom: '6px' }}>SRO OFFICE</label>
+                  <input
+                    type="text"
+                    value={sroOffice}
+                    onChange={(e) => setSroOffice(e.target.value)}
+                    style={{ width: '100%', boxSizing: 'border-box', height: '38px', padding: '0 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', backgroundColor: '#ffffff', color: '#0f172a' }}
+                  />
+                </div>
+              </div>
+
+              {/* Verification Sub-Tabs + Run Action Button + Targeting API Badge (Single Unified Centered Row) */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', width: '100%', boxSizing: 'border-box', backgroundColor: '#f8fafc', padding: '12px 14px', borderRadius: '10px', border: '1px solid #cbd5e1' }}>
+                <div style={{ display: 'flex', gap: '6px', flex: '1', minWidth: '0' }}>
+                  {[
+                    { id: 'all', label: '🚀 Unified Audit (Params 3, 4, 5)' },
+                    { id: 'p3', label: '🚫 Param 3: Prohibited' },
+                    { id: 'p4', label: '🌊 Param 4: Waterbodies' },
+                    { id: 'p5', label: '📜 Param 5: EC Deeds' },
+                  ].map((sub) => (
+                    <button
+                      key={sub.id}
+                      onClick={() => setVerifSubTab(sub.id as any)}
+                      style={{
+                        flex: '1',
+                        padding: '8px 6px',
+                        fontSize: '11px',
+                        fontWeight: verifSubTab === sub.id ? '700' : '600',
+                        color: verifSubTab === sub.id ? '#1e40af' : '#475569',
+                        backgroundColor: verifSubTab === sub.id ? '#dbeafe' : '#ffffff',
+                        borderRadius: '6px',
+                        border: verifSubTab === sub.id ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
+                      {sub.label}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => handleRunVerification(verifSubTab)}
+                  disabled={verifLoading}
+                  style={{
+                    backgroundColor: '#2563eb',
+                    color: '#ffffff',
+                    padding: '8px 14px',
+                    borderRadius: '6px',
+                    fontWeight: '800',
+                    fontSize: '11px',
+                    border: 'none',
+                    cursor: verifLoading ? 'not-allowed' : 'pointer',
+                    opacity: verifLoading ? 0.7 : 1,
+                    boxShadow: '0 2px 4px rgba(37,99,235,0.2)',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0,
+                  }}
+                >
+                  {verifLoading ? '⏳ Scraper Running...' : `Run ${verifSubTab.toUpperCase()} Verification`}
+                </button>
+
+                <span style={{ fontSize: '11px', color: '#475569', backgroundColor: '#ffffff', padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                  API: <code>/api/verification/{verifSubTab === 'all' ? 'run' : verifSubTab === 'p3' ? 'prohibited-land' : verifSubTab === 'p4' ? 'waterbody' : 'encumbrance'}</code>
+                </span>
+              </div>
+            </div>
+
+            {/* Verification Sources Supported */}
+            {verifSources.length > 0 && (
+              <div style={{ backgroundColor: '#ffffff', padding: '16px 20px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <h4 style={{ fontSize: '13px', fontWeight: '800', color: '#334155', marginBottom: '8px' }}>🌐 Official Government Data Sources Connected ({verifSources.length}):</h4>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {verifSources.map((src, i) => (
+                    <span key={i} style={{ backgroundColor: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '600' }}>
+                      {src.source_name} ({src.parameter}) • {src.authority}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Verification Output Section */}
+            {verifReport && verifSubTab === 'all' && (
+              <div style={{ backgroundColor: '#ffffff', padding: '24px', borderRadius: '12px', border: '1px solid #cbd5e1', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #f1f5f9', paddingBottom: '12px', marginBottom: '16px' }}>
+                  <div>
+                    <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#0f172a' }}>📋 Unified Verification Certificate</h3>
+                    <p style={{ fontSize: '12px', color: '#64748b' }}>Property: Sy No {surveyNo}, {village}, {mandal}, {district} District</p>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <span style={{
+                      backgroundColor: verifReport.overall_status === 'VERIFIED' ? '#dcfce7' : verifReport.overall_status === 'FLAGGED' ? '#fee2e2' : '#fef3c7',
+                      color: verifReport.overall_status === 'VERIFIED' ? '#15803d' : verifReport.overall_status === 'FLAGGED' ? '#b91c1c' : '#b45309',
+                      padding: '6px 14px', borderRadius: '20px', fontWeight: '800', fontSize: '13px', border: '1px solid currentColor'
+                    }}>
+                      OVERALL: {verifReport.overall_status}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Grid of Results */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+                  {verifReport.results && verifReport.results.map((res: any, idx: number) => (
+                    <div key={idx} style={{ backgroundColor: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '12px', fontWeight: '800', color: '#1e293b' }}>PARAM {res.parameter_number}: {res.parameter_name}</span>
+                        <span style={{
+                          fontSize: '11px', fontWeight: '800', padding: '2px 8px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '4px',
+                          backgroundColor: (res.status === 'CLEARED' || res.status === 'VERIFIED') ? '#dcfce7' : res.status === 'FLAGGED' ? '#fee2e2' : '#fef3c7',
+                          color: (res.status === 'CLEARED' || res.status === 'VERIFIED') ? '#15803d' : res.status === 'FLAGGED' ? '#b91c1c' : '#b45309'
+                        }}>
+                          {(res.status === 'CLEARED' || res.status === 'VERIFIED') ? '🟢 ' : res.status === 'FLAGGED' ? '🔴 ' : '🟡 '}
+                          {res.status}
+                        </span>
+                      </div>
+                      <p style={{ fontSize: '13px', color: '#334155', fontWeight: '600', marginBottom: '8px' }}>{res.summary}</p>
+                      <p style={{ fontSize: '11px', color: '#64748b' }}><strong>Source:</strong> {res.source_name} ({res.authority})</p>
+                      {res.matched_records && res.matched_records.length > 0 && (
+                        <div style={{ marginTop: '8px', backgroundColor: '#ffffff', padding: '8px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
+                          <p style={{ fontSize: '11px', fontWeight: '700', color: '#991b1b' }}>⚠️ Matched Records ({res.matched_records.length}):</p>
+                          <pre style={{ fontSize: '10px', color: '#475569', overflowX: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: '4px 0 0 0' }}>
+                            {JSON.stringify(res.matched_records, null, 2)}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Individual Parameter Direct Output Card */}
+            {(p3Result || p4Result || p5Result) && verifSubTab !== 'all' && (
+              <div style={{ backgroundColor: '#ffffff', padding: '20px', borderRadius: '12px', border: '1px solid #cbd5e1' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: '800', color: '#0f172a' }}>📊 Direct Endpoint Output ({verifSubTab.toUpperCase()})</h3>
+                  <span style={{ fontSize: '11px', color: '#64748b', backgroundColor: '#f1f5f9', padding: '4px 8px', borderRadius: '4px' }}>
+                    JSON Response Payload (Fixed Height Window)
+                  </span>
+                </div>
+                <pre style={{
+                  backgroundColor: '#0f172a',
+                  color: '#38bdf8',
+                  padding: '16px',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  lineHeight: '1.5',
+                  maxHeight: '380px',
+                  overflowY: 'auto',
+                  overflowX: 'auto',
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                  border: '1px solid #1e293b'
+                }}>
+                  {JSON.stringify(verifSubTab === 'p3' ? p3Result : verifSubTab === 'p4' ? p4Result : p5Result, null, 2)}
+                </pre>
+              </div>
+            )}
+
+            {/* RERA Project Document Storage Bucket Explorer Card */}
+            <div style={{ backgroundColor: '#ffffff', padding: '24px', borderRadius: '12px', border: '1px solid #cbd5e1', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', marginTop: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+                <div>
+                  <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#0f172a' }}>📁 RERA Project Document Vault (Supabase 2 Storage)</h3>
+                  <p style={{ fontSize: '13px', color: '#64748b', marginTop: '2px' }}>
+                    Fetch official RERA approval layouts, encumbrance certificates, and verified project PDFs directly from Supabase 2 storage.
+                  </p>
+                </div>
+                <span style={{ fontSize: '12px', backgroundColor: '#e0f2fe', color: '#0369a1', padding: '4px 10px', borderRadius: '20px', fontWeight: '600' }}>
+                  Bucket: project_rera_docs
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', marginBottom: '16px', alignItems: 'center' }}>
+                <input
+                  type="text"
+                  placeholder="Enter RERA Reg No (e.g. P01100003145)"
+                  value={reraNumber}
+                  onChange={(e) => setReraNumber(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleFetchReraDocs()}
+                  style={{
+                    flex: '1',
+                    padding: '10px 14px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    backgroundColor: '#ffffff',
+                    color: '#000000',
+                    fontSize: '14px',
+                    fontWeight: '600'
+                  }}
+                />
+                <button
+                  onClick={() => handleFetchReraDocs()}
+                  disabled={reraLoading}
+                  style={{
+                    backgroundColor: '#2563eb',
+                    color: '#ffffff',
+                    padding: '10px 20px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    fontWeight: '600',
+                    fontSize: '14px',
+                    cursor: reraLoading ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  {reraLoading ? 'Fetching Storage Vault...' : '🔍 Load RERA Documents'}
+                </button>
+              </div>
+
+              {reraError && (
+                <div style={{ padding: '12px 16px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', borderRadius: '8px', fontSize: '13px', fontWeight: '600' }}>
+                  ⚠️ {reraError}
+                </div>
+              )}
+
+              {reraDocs && (
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', paddingBottom: '8px', borderBottom: '1px solid #f1f5f9' }}>
+                    <span style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a' }}>
+                      📄 Documents for <code style={{ backgroundColor: '#f1f5f9', padding: '2px 6px', borderRadius: '4px' }}>{reraDocs.rera_number}</code>
+                    </span>
+                    <span style={{ fontSize: '13px', fontWeight: '600', color: '#2563eb', backgroundColor: '#eff6ff', padding: '4px 10px', borderRadius: '12px' }}>
+                      {reraDocs.total_documents} Documents Found
+                    </span>
+                  </div>
+
+                  {reraDocs.documents.length === 0 ? (
+                    <p style={{ fontSize: '13px', color: '#64748b', fontStyle: 'italic', padding: '12px 0' }}>
+                      No documents found for this RERA registration number in DB.
+                    </p>
+                  ) : (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px', maxHeight: '420px', overflowY: 'auto' }}>
+                      {reraDocs.documents.map((doc: any, idx: number) => (
+                        <div key={idx} style={{ padding: '12px 14px', borderRadius: '8px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '8px' }}>
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                              <span style={{ fontSize: '16px' }}>📑</span>
+                              <h4 style={{ fontSize: '13px', fontWeight: '700', color: '#0f172a', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={doc.document_type}>
+                                {doc.document_type}
+                              </h4>
+                            </div>
+                            <p style={{ fontSize: '11px', color: '#64748b', margin: 0 }}>
+                              {doc.file_name} • {(doc.size_bytes / 1024).toFixed(1)} KB
+                            </p>
+                          </div>
+                          <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                            <a
+                              href={doc.public_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                flex: '1',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '4px',
+                                padding: '6px 10px',
+                                backgroundColor: '#2563eb',
+                                color: '#ffffff',
+                                borderRadius: '6px',
+                                fontSize: '11px',
+                                fontWeight: '600',
+                                textDecoration: 'none',
+                                textAlign: 'center'
+                              }}
+                            >
+                              👁️ View
+                            </a>
+                            <a
+                              href={doc.download_url || `${doc.public_url}?download=${encodeURIComponent(doc.file_name)}`}
+                              download={doc.file_name}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                flex: '1',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '4px',
+                                padding: '6px 10px',
+                                backgroundColor: '#059669',
+                                color: '#ffffff',
+                                borderRadius: '6px',
+                                fontSize: '11px',
+                                fontWeight: '600',
+                                textDecoration: 'none',
+                                textAlign: 'center'
+                              }}
+                            >
+                              📥 Download
+                            </a>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Tab 1: Bhoomi AI Assistant */}
         {activeTab === 'bhoomi' && (
