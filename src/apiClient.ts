@@ -5,7 +5,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 export const apiClient = axios.create({
   baseURL: `${API_BASE_URL.replace(/\/$/, '')}/api`,
-  timeout: 30000, // 30s timeout to gracefully support Vercel serverless cold starts
+  timeout: 120000, // 120s timeout for live scraper & storage operations
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',

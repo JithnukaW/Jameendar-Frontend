@@ -70,17 +70,17 @@ export const App = () => {
   const handleFetchReraDocs = (targetRera?: string) => {
     const numToFetch = targetRera || reraNumber;
     if (!numToFetch || !numToFetch.trim()) return;
-    setReraLoading(true);
-    setReraError('');
     setReraDocs(null);
+    setReraError('');
+    setReraLoading(true);
 
-    apiClient.get(`/rera-documents/${encodeURIComponent(numToFetch.trim())}`)
+    apiClient.get(`/rera/${encodeURIComponent(numToFetch.trim())}`)
       .then((res: any) => {
         setReraDocs(res);
       })
       .catch((err: any) => {
         console.error(err);
-        setReraError(err?.detail || 'Failed to fetch RERA project documents.');
+        setReraError(err?.detail?.message || err?.detail || 'Failed to fetch RERA project documents.');
       })
       .finally(() => {
         setReraLoading(false);
@@ -96,7 +96,7 @@ export const App = () => {
     if (activeTab === 'regulatory') {
       if (updates.length === 0) {
         setLoadingUpdates(true);
-        apiClient.get('/regulatory/updates?limit=100000')
+        apiClient.get('/regulatory/updates?limit=500')
           .then((res: any) => setUpdates(res))
           .catch((err) => console.error(err))
           .finally(() => setLoadingUpdates(false));
@@ -611,9 +611,9 @@ export const App = () => {
             <div style={{ backgroundColor: '#ffffff', padding: '24px', borderRadius: '12px', border: '1px solid #cbd5e1', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', marginTop: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
                 <div>
-                  <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#0f172a' }}>📁 RERA Project Document Vault (Supabase 2 Storage)</h3>
+                  <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#0f172a' }}>📁 RERA Project Document Vault (Supabase Storage)</h3>
                   <p style={{ fontSize: '13px', color: '#64748b', marginTop: '2px' }}>
-                    Fetch official RERA approval layouts, encumbrance certificates, and verified project PDFs directly from Supabase 2 storage.
+                    Fetch official RERA approval layouts, encumbrance certificates, and verified project PDFs directly from Supabase storage.
                   </p>
                 </div>
                 <span style={{ fontSize: '12px', backgroundColor: '#e0f2fe', color: '#0369a1', padding: '4px 10px', borderRadius: '20px', fontWeight: '600' }}>
@@ -657,26 +657,71 @@ export const App = () => {
                 </button>
               </div>
 
+              {reraLoading && (
+                <div style={{
+                  padding: '24px',
+                  backgroundColor: '#eff6ff',
+                  border: '1px solid #93c5fd',
+                  borderRadius: '10px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '12px',
+                  marginTop: '16px'
+                }}>
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    border: '4px solid #bfdbfe',
+                    borderTop: '4px solid #2563eb',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite'
+                  }} />
+                  <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+                  <div style={{ textAlign: 'center' }}>
+                    <h4 style={{ fontSize: '15px', fontWeight: '800', color: '#1e40af', margin: '0 0 4px 0' }}>
+                      ⚡ Auto-Scraping & Fetching RERA Documents...
+                    </h4>
+                    <p style={{ fontSize: '13px', color: '#1d4ed8', margin: 0 }}>
+                      Checking Supabase storage/DB. If missing, live auto-scraping TG-RERA portal, solving CAPTCHA, downloading PDFs, and uploading to <code>project_rera_docs</code> bucket. Please wait...
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {reraError && (
-                <div style={{ padding: '12px 16px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', borderRadius: '8px', fontSize: '13px', fontWeight: '600' }}>
+                <div style={{ padding: '12px 16px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', borderRadius: '8px', fontSize: '13px', fontWeight: '600', marginTop: '12px' }}>
                   ⚠️ {reraError}
                 </div>
               )}
 
-              {reraDocs && (
-                <div>
+              {reraDocs && !reraLoading && (
+                <div style={{ marginTop: '16px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', paddingBottom: '8px', borderBottom: '1px solid #f1f5f9' }}>
-                    <span style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a' }}>
-                      📄 Documents for <code style={{ backgroundColor: '#f1f5f9', padding: '2px 6px', borderRadius: '4px' }}>{reraDocs.rera_number}</code>
-                    </span>
-                    <span style={{ fontSize: '13px', fontWeight: '600', color: '#2563eb', backgroundColor: '#eff6ff', padding: '4px 10px', borderRadius: '12px' }}>
-                      {reraDocs.total_documents} Documents Found
-                    </span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a' }}>
+                        📄 {reraDocs.project?.name ? `${reraDocs.project.name} (${reraDocs.rera_number})` : `Documents for ${reraDocs.rera_number}`}
+                      </span>
+                      {reraDocs.project?.promoter && (
+                        <span style={{ fontSize: '12px', color: '#64748b' }}>
+                          Promoter: <strong>{reraDocs.project.promoter}</strong> {reraDocs.project.status ? `• Status: ${reraDocs.project.status}` : ''}
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <span style={{ fontSize: '12px', fontWeight: '600', color: reraDocs.source === 'database' ? '#047857' : '#b45309', backgroundColor: reraDocs.source === 'database' ? '#d1fae5' : '#fef3c7', padding: '4px 8px', borderRadius: '12px' }}>
+                        {reraDocs.source === 'database' ? '💾 DB Vault Cache' : '⚡ Fresh TG-RERA Scrape'}
+                      </span>
+                      <span style={{ fontSize: '13px', fontWeight: '600', color: '#2563eb', backgroundColor: '#eff6ff', padding: '4px 10px', borderRadius: '12px' }}>
+                        {reraDocs.documents ? reraDocs.documents.length : (reraDocs.total_documents || 0)} Docs
+                      </span>
+                    </div>
                   </div>
 
-                  {reraDocs.documents.length === 0 ? (
+                  {(!reraDocs.documents || reraDocs.documents.length === 0) ? (
                     <p style={{ fontSize: '13px', color: '#64748b', fontStyle: 'italic', padding: '12px 0' }}>
-                      No documents found for this RERA registration number in DB.
+                      No documents found for this RERA registration number.
                     </p>
                   ) : (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px', maxHeight: '420px', overflowY: 'auto' }}>
@@ -685,12 +730,12 @@ export const App = () => {
                           <div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
                               <span style={{ fontSize: '16px' }}>📑</span>
-                              <h4 style={{ fontSize: '13px', fontWeight: '700', color: '#0f172a', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={doc.document_type}>
-                                {doc.document_type}
+                              <h4 style={{ fontSize: '13px', fontWeight: '700', color: '#0f172a', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={doc.document_name || doc.document_type}>
+                                {doc.document_name || doc.document_type}
                               </h4>
                             </div>
                             <p style={{ fontSize: '11px', color: '#64748b', margin: 0 }}>
-                              {doc.file_name} • {(doc.size_bytes / 1024).toFixed(1)} KB
+                              {doc.storage_path ? doc.storage_path.split('/').pop() : doc.file_name} {doc.file_size ? `• ${(doc.file_size / 1024).toFixed(1)} KB` : ''}
                             </p>
                           </div>
                           <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
