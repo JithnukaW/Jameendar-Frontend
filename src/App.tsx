@@ -45,8 +45,7 @@ export const App = () => {
   const [locB, setLocB] = useState<string>('Tellapur');
   const [compareData, setCompareData] = useState<any>(null);
 
-  // Property Verification State (Parameters 3, 4, 5)
-  const [verifSubTab, setVerifSubTab] = useState<'all' | 'p3' | 'p4' | 'p5'>('all');
+  // Property Verification State (Parameters 2, 3, 4, 5)
   const [surveyNo, setSurveyNo] = useState('254');
   const [district, setDistrict] = useState('Rangareddy');
   const [mandal, setMandal] = useState('Gandipet');
@@ -56,9 +55,11 @@ export const App = () => {
   const [sroOffice, setSroOffice] = useState('Gandipet');
   const [verifLoading, setVerifLoading] = useState(false);
   const [verifReport, setVerifReport] = useState<any>(null);
+  const [p2Result, setP2Result] = useState<any>(null);
   const [p3Result, setP3Result] = useState<any>(null);
   const [p4Result, setP4Result] = useState<any>(null);
   const [p5Result, setP5Result] = useState<any>(null);
+  const [verifSubTab, setVerifSubTab] = useState<'p2' | 'p3' | 'p4' | 'p5' | 'all'>('p2');
   const [verifSources, setVerifSources] = useState<any[]>([]);
 
   // RERA Documents State & Handler
@@ -211,7 +212,7 @@ export const App = () => {
     }
   }, [activeTab]);
 
-  const handleRunVerification = async (paramType: 'all' | 'p3' | 'p4' | 'p5') => {
+  const handleRunVerification = async (paramType: 'all' | 'p2' | 'p3' | 'p4' | 'p5') => {
     setVerifLoading(true);
     const payload = {
       survey_number: surveyNo,
@@ -227,6 +228,9 @@ export const App = () => {
       if (paramType === 'all') {
         const res = await apiClient.post('/verification/run', payload);
         setVerifReport(res);
+      } else if (paramType === 'p2') {
+        const res = await apiClient.post('/verification/land-details', payload);
+        setP2Result(res);
       } else if (paramType === 'p3') {
         const res = await apiClient.post('/verification/prohibited-land', payload);
         setP3Result(res);
@@ -460,7 +464,7 @@ export const App = () => {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', width: '100%', boxSizing: 'border-box', backgroundColor: '#f8fafc', padding: '12px 14px', borderRadius: '10px', border: '1px solid #cbd5e1' }}>
                 <div style={{ display: 'flex', gap: '6px', flex: '1', minWidth: '0' }}>
                   {[
-                    { id: 'all', label: '🚀 Unified Audit (Params 3, 4, 5)' },
+                    { id: 'p2', label: '🏞️ Param 2: Land Details' },
                     { id: 'p3', label: '🚫 Param 3: Prohibited' },
                     { id: 'p4', label: '🌊 Param 4: Waterbodies' },
                     { id: 'p5', label: '📜 Param 5: EC Deeds' },
@@ -510,7 +514,7 @@ export const App = () => {
                 </button>
 
                 <span style={{ fontSize: '11px', color: '#475569', backgroundColor: '#ffffff', padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                  API: <code>/api/verification/{verifSubTab === 'all' ? 'run' : verifSubTab === 'p3' ? 'prohibited-land' : verifSubTab === 'p4' ? 'waterbody' : 'encumbrance'}</code>
+                  API: <code>/api/verification/{verifSubTab === 'p2' ? 'land-details' : verifSubTab === 'p3' ? 'prohibited-land' : verifSubTab === 'p4' ? 'waterbody' : 'encumbrance'}</code>
                 </span>
               </div>
             </div>
@@ -580,7 +584,7 @@ export const App = () => {
             )}
 
             {/* Individual Parameter Direct Output Card */}
-            {(p3Result || p4Result || p5Result) && verifSubTab !== 'all' && (
+            {(p2Result || p3Result || p4Result || p5Result) && verifSubTab !== 'all' && (
               <div style={{ backgroundColor: '#ffffff', padding: '20px', borderRadius: '12px', border: '1px solid #cbd5e1' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                   <h3 style={{ fontSize: '16px', fontWeight: '800', color: '#0f172a' }}>📊 Direct Endpoint Output ({verifSubTab.toUpperCase()})</h3>
@@ -602,7 +606,7 @@ export const App = () => {
                   wordBreak: 'break-word',
                   border: '1px solid #1e293b'
                 }}>
-                  {JSON.stringify(verifSubTab === 'p3' ? p3Result : verifSubTab === 'p4' ? p4Result : p5Result, null, 2)}
+                  {JSON.stringify(verifSubTab === 'p2' ? p2Result : verifSubTab === 'p3' ? p3Result : verifSubTab === 'p4' ? p4Result : p5Result, null, 2)}
                 </pre>
               </div>
             )}
