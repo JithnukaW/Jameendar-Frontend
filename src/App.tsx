@@ -712,6 +712,13 @@ export const App = () => {
                           Promoter: <strong>{reraDocs.project.promoter}</strong> {reraDocs.project.status ? `• Status: ${reraDocs.project.status}` : ''}
                         </span>
                       )}
+                      {(reraDocs.project?.certificate_valid_from || reraDocs.project?.certificate_valid_to) && (
+                        <div style={{ marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontSize: '12px', fontWeight: '600', color: '#047857', backgroundColor: '#ecfdf5', padding: '3px 8px', borderRadius: '6px', border: '1px solid #a7f3d0', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            📅 RERA Validity: <strong>{reraDocs.project.certificate_valid_from || 'N/A'}</strong> → <strong>{reraDocs.project.certificate_valid_to || 'N/A'}</strong>
+                          </span>
+                        </div>
+                      )}
                     </div>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                       <span style={{ fontSize: '12px', fontWeight: '600', color: reraDocs.source === 'database' ? '#047857' : '#b45309', backgroundColor: reraDocs.source === 'database' ? '#d1fae5' : '#fef3c7', padding: '4px 8px', borderRadius: '12px' }}>
@@ -729,13 +736,15 @@ export const App = () => {
                     </p>
                   ) : (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px', maxHeight: '420px', overflowY: 'auto' }}>
-                      {reraDocs.documents.map((doc: any, idx: number) => (
-                        <div key={idx} style={{ padding: '12px 14px', borderRadius: '8px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '8px' }}>
+                      {reraDocs.documents.map((doc: any, idx: number) => {
+                        const isCert = (doc.document_type || '').toUpperCase().includes('REGISTRATION_CERTIFICATE') || (doc.document_name || '').toLowerCase().includes('certificate');
+                        return (
+                        <div key={idx} style={{ padding: '12px 14px', borderRadius: '8px', border: isCert ? '2px solid #10b981' : '1px solid #e2e8f0', backgroundColor: isCert ? '#f0fdf4' : '#f8fafc', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '8px' }}>
                           <div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                              <span style={{ fontSize: '16px' }}>📑</span>
-                              <h4 style={{ fontSize: '13px', fontWeight: '700', color: '#0f172a', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={doc.document_name || doc.document_type}>
-                                {doc.document_name || doc.document_type}
+                              <span style={{ fontSize: '16px' }}>{isCert ? '📜' : '📑'}</span>
+                              <h4 style={{ fontSize: '13px', fontWeight: '700', color: isCert ? '#047857' : '#0f172a', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={doc.document_name || doc.document_type}>
+                                {doc.document_name || doc.document_type} {isCert ? ' (Official Certificate)' : ''}
                               </h4>
                             </div>
                             <p style={{ fontSize: '11px', color: '#64748b', margin: 0 }}>
