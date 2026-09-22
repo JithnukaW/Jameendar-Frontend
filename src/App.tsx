@@ -589,9 +589,42 @@ export const App = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                   <h3 style={{ fontSize: '16px', fontWeight: '800', color: '#0f172a' }}>📊 Direct Endpoint Output ({verifSubTab.toUpperCase()})</h3>
                   <span style={{ fontSize: '11px', color: '#64748b', backgroundColor: '#f1f5f9', padding: '4px 8px', borderRadius: '4px' }}>
-                    JSON Response Payload (Fixed Height Window)
+                    Verified Government Data
                   </span>
                 </div>
+
+                {verifSubTab === 'p2' && p2Result && (
+                  <div style={{ marginBottom: '16px', backgroundColor: '#f8fafc', padding: '16px', borderRadius: '8px', border: p2Result.status === 'FOUND' ? '1px solid #a7f3d0' : '1px solid #fecaca' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: '700', color: p2Result.status === 'FOUND' ? '#047857' : '#b91c1c' }}>
+                        {p2Result.status === 'FOUND' ? '🟢 LAND RECORD FOUND' : '🔴 LAND RECORD NOT FOUND'}
+                      </span>
+                      {p2Result.retrieved_from_cache && (
+                        <span style={{ fontSize: '11px', backgroundColor: '#dbeafe', color: '#1e40af', padding: '2px 8px', borderRadius: '12px', fontWeight: '600' }}>
+                          ⚡ Cached Record
+                        </span>
+                      )}
+                    </div>
+
+                    {p2Result.status === 'FOUND' && p2Result.land_record && (
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginTop: '10px' }}>
+                        <div style={{ backgroundColor: '#ffffff', padding: '10px 12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                          <p style={{ fontSize: '11px', color: '#64748b', margin: 0 }}>Pattadar / Owner Name</p>
+                          <p style={{ fontSize: '13px', fontWeight: '700', color: '#0f172a', margin: '2px 0 0 0' }}>{p2Result.land_record.recorded_pattadar?.name || 'N/A'}</p>
+                        </div>
+                        <div style={{ backgroundColor: '#ffffff', padding: '10px 12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                          <p style={{ fontSize: '11px', color: '#64748b', margin: 0 }}>Total Extent</p>
+                          <p style={{ fontSize: '13px', fontWeight: '700', color: '#0f172a', margin: '2px 0 0 0' }}>{p2Result.land_record.recorded_extent?.raw || 'N/A'}</p>
+                        </div>
+                        <div style={{ backgroundColor: '#ffffff', padding: '10px 12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                          <p style={{ fontSize: '11px', color: '#64748b', margin: 0 }}>Survey Number</p>
+                          <p style={{ fontSize: '13px', fontWeight: '700', color: '#0f172a', margin: '2px 0 0 0' }}>{p2Result.land_record.survey_no}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <pre style={{
                   backgroundColor: '#0f172a',
                   color: '#38bdf8',
