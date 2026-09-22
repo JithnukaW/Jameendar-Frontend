@@ -737,19 +737,24 @@ export const App = () => {
                   ) : (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px', maxHeight: '420px', overflowY: 'auto' }}>
                       {reraDocs.documents.map((doc: any, idx: number) => {
-                        const isCert = (doc.document_type || '').toUpperCase().includes('REGISTRATION_CERTIFICATE') || (doc.document_name || '').toLowerCase().includes('certificate');
+                        const docTitle = doc.document_name || doc.document_type || 'Document';
+                        const isCert = (doc.document_type || '').toUpperCase().includes('REGISTRATION_CERTIFICATE') || 
+                                       (doc.document_name || '').toUpperCase().includes('REGISTRATION CERTIFICATE') ||
+                                       (doc.storage_path || '').toLowerCase().includes('registration_certificate');
                         return (
                         <div key={idx} style={{ padding: '12px 14px', borderRadius: '8px', border: isCert ? '2px solid #10b981' : '1px solid #e2e8f0', backgroundColor: isCert ? '#f0fdf4' : '#f8fafc', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '8px' }}>
                           <div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
                               <span style={{ fontSize: '16px' }}>{isCert ? '📜' : '📑'}</span>
-                              <h4 style={{ fontSize: '13px', fontWeight: '700', color: isCert ? '#047857' : '#0f172a', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={doc.document_name || doc.document_type}>
-                                {doc.document_name || doc.document_type} {isCert ? ' (Official Certificate)' : ''}
+                              <h4 style={{ fontSize: '13px', fontWeight: '700', color: isCert ? '#047857' : '#0f172a', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={isCert ? 'Registration Certificate (Official)' : docTitle}>
+                                {isCert ? 'Registration Certificate' : docTitle}
                               </h4>
                             </div>
-                            <p style={{ fontSize: '11px', color: '#64748b', margin: 0 }}>
-                              {doc.storage_path ? doc.storage_path.split('/').pop() : doc.file_name} {doc.file_size ? `• ${(doc.file_size / 1024).toFixed(1)} KB` : ''}
-                            </p>
+                            {doc.file_size ? (
+                              <p style={{ fontSize: '11px', color: '#64748b', margin: 0 }}>
+                                PDF File • {(doc.file_size / 1024).toFixed(1)} KB
+                              </p>
+                            ) : null}
                           </div>
                           <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
                             <a
