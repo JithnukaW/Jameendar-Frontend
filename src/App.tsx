@@ -771,72 +771,72 @@ export const App = () => {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px', maxHeight: '420px', overflowY: 'auto' }}>
                       {reraDocs.documents.map((doc: any, idx: number) => {
                         const docTitle = doc.document_name || doc.document_type || 'Document';
-                        const isCert = (doc.document_type || '').toUpperCase().includes('REGISTRATION_CERTIFICATE') || 
-                                       (doc.document_name || '').toUpperCase().includes('REGISTRATION CERTIFICATE') ||
-                                       (doc.storage_path || '').toLowerCase().includes('registration_certificate');
+                        const isCert = (doc.document_type || '').toUpperCase().includes('REGISTRATION_CERTIFICATE') ||
+                          (doc.document_name || '').toUpperCase().includes('REGISTRATION CERTIFICATE') ||
+                          (doc.storage_path || '').toLowerCase().includes('registration_certificate');
                         return (
-                        <div key={idx} style={{ padding: '12px 14px', borderRadius: '8px', border: isCert ? '2px solid #10b981' : '1px solid #e2e8f0', backgroundColor: isCert ? '#f0fdf4' : '#f8fafc', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '8px' }}>
-                          <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                              <span style={{ fontSize: '16px' }}>{isCert ? '📜' : '📑'}</span>
-                              <h4 style={{ fontSize: '13px', fontWeight: '700', color: isCert ? '#047857' : '#0f172a', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={isCert ? 'Registration Certificate (Official)' : docTitle}>
-                                {isCert ? 'Registration Certificate' : docTitle}
-                              </h4>
+                          <div key={idx} style={{ padding: '12px 14px', borderRadius: '8px', border: isCert ? '2px solid #10b981' : '1px solid #e2e8f0', backgroundColor: isCert ? '#f0fdf4' : '#f8fafc', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '8px' }}>
+                            <div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                                <span style={{ fontSize: '16px' }}>{isCert ? '📜' : '📑'}</span>
+                                <h4 style={{ fontSize: '13px', fontWeight: '700', color: isCert ? '#047857' : '#0f172a', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={isCert ? 'Registration Certificate (Official)' : docTitle}>
+                                  {isCert ? 'Registration Certificate' : docTitle}
+                                </h4>
+                              </div>
+                              {doc.file_size ? (
+                                <p style={{ fontSize: '11px', color: '#64748b', margin: 0 }}>
+                                  PDF File • {(doc.file_size / 1024).toFixed(1)} KB
+                                </p>
+                              ) : null}
                             </div>
-                            {doc.file_size ? (
-                              <p style={{ fontSize: '11px', color: '#64748b', margin: 0 }}>
-                                PDF File • {(doc.file_size / 1024).toFixed(1)} KB
-                              </p>
-                            ) : null}
+                            <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                              <a
+                                href={doc.public_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                  flex: '1',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: '4px',
+                                  padding: '6px 10px',
+                                  backgroundColor: '#2563eb',
+                                  color: '#ffffff',
+                                  borderRadius: '6px',
+                                  fontSize: '11px',
+                                  fontWeight: '600',
+                                  textDecoration: 'none',
+                                  textAlign: 'center'
+                                }}
+                              >
+                                👁️ View
+                              </a>
+                              <a
+                                href={doc.download_url || `${doc.public_url}?download=${encodeURIComponent(doc.file_name)}`}
+                                download={doc.file_name}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                  flex: '1',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: '4px',
+                                  padding: '6px 10px',
+                                  backgroundColor: '#059669',
+                                  color: '#ffffff',
+                                  borderRadius: '6px',
+                                  fontSize: '11px',
+                                  fontWeight: '600',
+                                  textDecoration: 'none',
+                                  textAlign: 'center'
+                                }}
+                              >
+                                📥 Download
+                              </a>
+                            </div>
                           </div>
-                          <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                            <a
-                              href={doc.public_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              style={{
-                                flex: '1',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '4px',
-                                padding: '6px 10px',
-                                backgroundColor: '#2563eb',
-                                color: '#ffffff',
-                                borderRadius: '6px',
-                                fontSize: '11px',
-                                fontWeight: '600',
-                                textDecoration: 'none',
-                                textAlign: 'center'
-                              }}
-                            >
-                              👁️ View
-                            </a>
-                            <a
-                              href={doc.download_url || `${doc.public_url}?download=${encodeURIComponent(doc.file_name)}`}
-                              download={doc.file_name}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              style={{
-                                flex: '1',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '4px',
-                                padding: '6px 10px',
-                                backgroundColor: '#059669',
-                                color: '#ffffff',
-                                borderRadius: '6px',
-                                fontSize: '11px',
-                                fontWeight: '600',
-                                textDecoration: 'none',
-                                textAlign: 'center'
-                              }}
-                            >
-                              📥 Download
-                            </a>
-                          </div>
-                        </div>
                         );
                       })}
                     </div>
@@ -1551,13 +1551,13 @@ export const App = () => {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '12px' }}>
                     <div style={{ backgroundColor: '#ffffff', padding: '12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
                       <h4 style={{ fontSize: '15px', fontWeight: '800', color: '#0f172a' }}>{compareData.locality_a?.locality}</h4>
-                      <p style={{ fontSize: '20px', fontWeight: '800', color: '#16a34a', margin: '4px 0' }}>{compareData.locality_a?.avg_price_sqft}</p>
+                      <p style={{ fontSize: '20px', fontWeight: '800', color: '#16a34a', margin: '4px 0' }}>{compareData.locality_a?.land_rate_sqyard || compareData.locality_a?.avg_price_sqft?.replace('/sq.ft', '/sq.yard')}</p>
                       <p style={{ fontSize: '12px', color: '#475569' }}>30d Change: <strong>{compareData.locality_a?.price_change_pct}</strong> ({compareData.locality_a?.trend_direction})</p>
                       <p style={{ fontSize: '12px', color: '#475569' }}>Registrations: <strong>{compareData.locality_a?.total_registrations}</strong> transactions</p>
                     </div>
                     <div style={{ backgroundColor: '#ffffff', padding: '12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
                       <h4 style={{ fontSize: '15px', fontWeight: '800', color: '#0f172a' }}>{compareData.locality_b?.locality}</h4>
-                      <p style={{ fontSize: '20px', fontWeight: '800', color: '#16a34a', margin: '4px 0' }}>{compareData.locality_b?.avg_price_sqft}</p>
+                      <p style={{ fontSize: '20px', fontWeight: '800', color: '#16a34a', margin: '4px 0' }}>{compareData.locality_b?.land_rate_sqyard || compareData.locality_b?.avg_price_sqft?.replace('/sq.ft', '/sq.yard')}</p>
                       <p style={{ fontSize: '12px', color: '#475569' }}>30d Change: <strong>{compareData.locality_b?.price_change_pct}</strong> ({compareData.locality_b?.trend_direction})</p>
                       <p style={{ fontSize: '12px', color: '#475569' }}>Registrations: <strong>{compareData.locality_b?.total_registrations}</strong> transactions</p>
                     </div>
@@ -1579,7 +1579,7 @@ export const App = () => {
                 {prices.map((p) => (
                   <div key={p.id} style={{ backgroundColor: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #cbd5e1', textAlign: 'center' }}>
                     <p style={{ fontSize: '12px', color: '#64748b', fontWeight: '600' }}>{p.locality}</p>
-                    <p style={{ fontSize: '18px', fontWeight: '800', color: '#0f172a', margin: '4px 0' }}>{p.avg_price_sqft}</p>
+                    <p style={{ fontSize: '18px', fontWeight: '800', color: '#0f172a', margin: '4px 0' }}>{p.land_rate_sqyard || p.avg_price_sqft?.replace('/sq.ft', '/sq.yard')}</p>
                     <span style={{ fontSize: '11px', color: p.total_registrations > 0 ? '#16a34a' : '#64748b', fontWeight: '700', backgroundColor: p.total_registrations > 0 ? '#dcfce7' : '#f1f5f9', padding: '2px 6px', borderRadius: '4px' }}>
                       {p.total_registrations > 0 ? `${p.price_change_pct} (${p.trend_direction})` : 'Awaiting Live Feed'}
                     </span>
