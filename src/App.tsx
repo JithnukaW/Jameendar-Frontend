@@ -1551,13 +1551,13 @@ export const App = () => {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '12px' }}>
                     <div style={{ backgroundColor: '#ffffff', padding: '12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
                       <h4 style={{ fontSize: '15px', fontWeight: '800', color: '#0f172a' }}>{compareData.locality_a?.locality}</h4>
-                      <p style={{ fontSize: '20px', fontWeight: '800', color: '#16a34a', margin: '4px 0' }}>{compareData.locality_a?.land_rate_sqyard || compareData.locality_a?.avg_price_sqft?.replace('/sq.ft', '/sq.yard')}</p>
+                      <p style={{ fontSize: '20px', fontWeight: '800', color: '#16a34a', margin: '4px 0' }}>{compareData.locality_a?.avg_price_sqyard || compareData.locality_a?.land_rate_sqyard || compareData.locality_a?.avg_price_sqft}</p>
                       <p style={{ fontSize: '12px', color: '#475569' }}>30d Change: <strong>{compareData.locality_a?.price_change_pct}</strong> ({compareData.locality_a?.trend_direction})</p>
                       <p style={{ fontSize: '12px', color: '#475569' }}>Registrations: <strong>{compareData.locality_a?.total_registrations}</strong> transactions</p>
                     </div>
                     <div style={{ backgroundColor: '#ffffff', padding: '12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
                       <h4 style={{ fontSize: '15px', fontWeight: '800', color: '#0f172a' }}>{compareData.locality_b?.locality}</h4>
-                      <p style={{ fontSize: '20px', fontWeight: '800', color: '#16a34a', margin: '4px 0' }}>{compareData.locality_b?.land_rate_sqyard || compareData.locality_b?.avg_price_sqft?.replace('/sq.ft', '/sq.yard')}</p>
+                      <p style={{ fontSize: '20px', fontWeight: '800', color: '#16a34a', margin: '4px 0' }}>{compareData.locality_b?.avg_price_sqyard || compareData.locality_b?.land_rate_sqyard || compareData.locality_b?.avg_price_sqft}</p>
                       <p style={{ fontSize: '12px', color: '#475569' }}>30d Change: <strong>{compareData.locality_b?.price_change_pct}</strong> ({compareData.locality_b?.trend_direction})</p>
                       <p style={{ fontSize: '12px', color: '#475569' }}>Registrations: <strong>{compareData.locality_b?.total_registrations}</strong> transactions</p>
                     </div>
@@ -1579,7 +1579,7 @@ export const App = () => {
                 {prices.map((p) => (
                   <div key={p.id} style={{ backgroundColor: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #cbd5e1', textAlign: 'center' }}>
                     <p style={{ fontSize: '12px', color: '#64748b', fontWeight: '600' }}>{p.locality}</p>
-                    <p style={{ fontSize: '18px', fontWeight: '800', color: '#0f172a', margin: '4px 0' }}>{p.land_rate_sqyard || p.avg_price_sqft?.replace('/sq.ft', '/sq.yard')}</p>
+                    <p style={{ fontSize: '18px', fontWeight: '800', color: '#0f172a', margin: '4px 0' }}>{p.avg_price_sqyard || p.land_rate_sqyard || p.avg_price_sqft}</p>
                     <span style={{ fontSize: '11px', color: p.total_registrations > 0 ? '#16a34a' : '#64748b', fontWeight: '700', backgroundColor: p.total_registrations > 0 ? '#dcfce7' : '#f1f5f9', padding: '2px 6px', borderRadius: '4px' }}>
                       {p.total_registrations > 0 ? `${p.price_change_pct} (${p.trend_direction})` : 'Awaiting Live Feed'}
                     </span>
